@@ -1,0 +1,22 @@
+# Copy this file to .env and fill the real values. NEVER commit real secrets.
+# Azure OpenAI
+AZURE_OPENAI_API_KEY=YOUR_AZURE_OPENAI_KEY
+AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=your-deployment-name
+AZURE_OPENAI_API_VERSION=2024-12-01-preview
+
+# Azure Monitor / Application Insights (Connection string)
+APPINSIGHT_INSTRUMENTATION_KEY=InstrumentationKey=00000000-0000-0000-0000-000000000000;IngestionEndpoint=https://westeurope-0.in.applicationinsights.azure.com/
+
+# Optional OpenTelemetry capture flags
+OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
+OTEL_INSTRUMENTATION_GENAI_CAPTURE_USAGE=true
+
+# Cosmos DB (only required for op2-CosmosDBTracing.py)
+COSMOS_URL=https://your-cosmos-account.documents.azure.com:443/
+COSMOS_KEY=your-cosmos-key==
+COSMOS_DB=your-db-name
+COSMOS_CONTAINER=your-container-name
+
+# (Optional) Chainlit conversation id override (normally auto)
+# CHAINLIT_CONVERSATION_ID=
