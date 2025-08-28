@@ -1,7 +1,7 @@
 # Calabrio Chat Completion Telemetry Demo
 
 ## Overview
-Current state: the repository now contains three active Python scripts demonstrating telemetry (and, for one script, Cosmos DB persistence). Legacy files referenced in earlier documentation (`tracingexample.py`, `PruebasAutoUsageTest.py`, `op1-NativeTracingTelemetry.py`, `op2-NativeTracingTelemetry.py`, `chainlit_app.py`) have been removed. This README only describes what is present today.
+Current state: the repository now contains four active Python scripts demonstrating telemetry (and, for one script, Cosmos DB persistence). Legacy files referenced in earlier documentation (`tracingexample.py`, `PruebasAutoUsageTest.py`, `op1-NativeTracingTelemetry.py`, `op2-NativeTracingTelemetry.py`, `chainlit_app.py`) have been removed. This README only describes what is present today.
 
 Conceptual approaches:
 1. Option 1 (Native instrumentation): automatic SDK spans + token usage via `stream_options={"include_usage": True}` with minimal custom logic.
@@ -13,6 +13,7 @@ Conceptual approaches:
 |------|---------|----------|
 | `op1-NativeTracingTelemetrySimpleCase.py` | Standalone single streaming request; adds manual token usage attributes and counters (prompt/completion/total). | Option 1 (standalone advanced) |
 | `op1-NativeTracingTelemetryChat.py` | Minimal multi‑turn Chainlit chat: conversation/turn spans + automatic usage (no manual counters). | Option 1 (chat) |
+| `op1-NativeTracingSemanticKernel.py` | Minimal Semantic Kernel (non‑streaming) single prompt; creates conversation + turn spans; relies on automatic usage capture (no manual counters). | Option 1 (Semantic Kernel) |
 | `op2-CosmosDBTracing.py` | Chainlit chat persisting turns in Cosmos DB (stores input/output + basic trace list). Extendable for tokens. | Option 2 (Cosmos) |
 | `chainlit.md` | Chainlit welcome screen. | UI |
 | `requirements.txt` | Dependencies (Chainlit, OpenAI, Cosmos, OpenTelemetry, etc.). | Infra |
@@ -93,6 +94,12 @@ Prepare the database/container and environment variables, then:
 ```bash
 chainlit run op2-CosmosDBTracing.py
 ```
+
+### 4. Minimal Semantic Kernel (non‑streaming)
+```bash
+python op1-NativeTracingSemanticKernel.py
+```
+Single prompt answered via Semantic Kernel; emits one conversation + one turn span; relies on OpenAI auto‑instrumentation for token usage (no manual counters, no streaming loop).
 
 ---
 ## Key Differences

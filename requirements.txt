@@ -4,3 +4,4 @@ openai==1.102.0
 python-dotenv==1.1.1
 azure-monitor-opentelemetry==1.7.0
 opentelemetry-instrumentation-openai-v2==2.1b0
+semantic-kernel==1.36.0
