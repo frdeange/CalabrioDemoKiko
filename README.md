@@ -9,6 +9,18 @@
 
 *Complete telemetry demonstration for chat completions with Azure OpenAI*
 
+---
+
+### ⚡ Quick Start
+
+[![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in%20GitHub%20Codespaces-181717?style=for-the-badge&logo=github&logoColor=white)](https://codespaces.new/frdeange/CalabrioDemoKiko)
+
+**Or clone locally:**
+```bash
+git clone https://github.com/frdeange/CalabrioDemoKiko.git
+cd CalabrioChatCompletionTracing
+```
+
 </div>
 
 ## 📋 Overview
@@ -110,24 +122,65 @@ COSMOS_CONTAINER=your_container_name
 
 ## 🚀 How to Run
 
-### 🐳 Dev Container (Recommended)
+### 🌐 GitHub Codespaces (Fastest Start)
+
+**No setup required!** Click the button above to launch a pre-configured development environment in your browser.
+
+[![Open in GitHub Codespaces](https://img.shields.io/badge/🚀%20Launch%20Codespaces-181717?style=for-the-badge&logo=github&logoColor=white)](https://codespaces.new/frdeange/CalabrioDemoKiko)
+
+✅ **What you get instantly:**
+- Pre-installed Python 3.12 + all dependencies
+- Azure CLI ready to use
+- VS Code in your browser
+- Zero local setup needed
+
+**After Codespaces launches:**
+1. Wait for the automatic setup to complete (~2 minutes)
+2. Create your environment file: `cp .fakeenv .env`
+3. Edit `.env` with your Azure credentials
+4. Run any of the execution modes below!
+
+### 🐳 Dev Container (Local VS Code)
 
 The repository includes a VS Code Dev Container (`.devcontainer/devcontainer.json`) based on image `mcr.microsoft.com/devcontainers/python:1-3.12-bullseye` with Azure CLI feature.
 
 <details>
 <summary><strong>📋 Prerequisites</strong></summary>
 
-- ✅ Docker Desktop / compatible container runtime running
-- ✅ VS Code with Dev Containers extension (or GitHub Codespaces)
+#### Required Software
+- ✅ **Docker Desktop** (or compatible container runtime) running
+- ✅ **VS Code** with the Dev Containers extension installed
+- ✅ **Git** for cloning the repository
+
+#### Alternative: GitHub Codespaces
+- ✅ **GitHub account** with Codespaces access
+- ✅ **Web browser** (no local software required)
+
+#### System Requirements
+- 🖥️ **RAM**: 4GB minimum, 8GB recommended
+- 💾 **Storage**: 2GB free space for container images
+- 🌐 **Internet**: Stable connection for container downloads
 
 </details>
 
 #### 🔧 Setup Steps
 
 1. **📥 Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd CalabrioChatCompletionTracing
+   ```
+
 2. **🖥️ Open folder in VS Code**: it should prompt "Reopen in Container". Accept.
+
 3. **⏳ After build**: the `postCreateCommand` installs Python dependencies from `requirements.txt`
-4. **🔐 Create `.env`** (copy from `.fakeenv`)
+
+4. **🔐 Create and configure environment file**
+   ```bash
+   cp .fakeenv .env
+   # Edit .env with your real Azure credentials
+   ```
+
 5. **▶️ Run** the scripts/Chainlit commands as shown below
 
 ### 💻 Local (Without Dev Container)
@@ -151,9 +204,12 @@ python -m venv .venv && source .venv/bin/activate  # Linux/macOS
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Configure environment variables
+# 3. Copy and configure environment variables
 cp .fakeenv .env
-# Edit .env with real values
+# Edit .env with your real Azure credentials using your preferred editor:
+# code .env  # VS Code
+# nano .env  # Terminal editor
+# vim .env   # Vim editor
 
 # 4. Run one of the execution modes below
 ```
@@ -161,6 +217,17 @@ cp .fakeenv .env
 ---
 
 ## 🎮 Execution Modes
+
+> ⚡ **Quick Start Commands**
+> 
+> **First time?** [![Launch in Codespaces](https://img.shields.io/badge/🚀%20Try%20in%20Codespaces-181717?style=flat&logo=github&logoColor=white)](https://codespaces.new/frdeange/CalabrioDemoKiko) for instant setup!
+> 
+> **Local setup:** Make sure you have configured your environment:
+> ```bash
+> # Copy environment template and configure with your credentials
+> cp .fakeenv .env
+> # Edit .env with your Azure OpenAI and other service credentials
+> ```
 
 ### 1️⃣ Standalone (tokens + counters)
 
@@ -188,6 +255,14 @@ chainlit run op1-NativeTracingTelemetryChat.py
 ### 3️⃣ Chat with Cosmos DB persistence
 
 > ⚠️ **Preparation**: Set up the database/container and environment variables first
+> 
+> ```bash
+> # Make sure these are configured in your .env file:
+> # COSMOS_URL=https://account.documents.azure.com:443/
+> # COSMOS_KEY=your_cosmos_key
+> # COSMOS_DB=your_database_name
+> # COSMOS_CONTAINER=your_container_name
+> ```
 
 ```bash
 chainlit run op2-CosmosDBTracing.py
@@ -252,53 +327,19 @@ python op1-NativeTracingSemanticKernel.py
 <td>✅ Yes</td>
 </tr>
 <tr>
-<td><strong>Manual token attributes</strong></td>
-<td>✅ Yes</td>
+<td><strong>Token data capture</strong></td>
+<td>✅ Yes (manual attributes)</td>
 <td>❌ No (expects auto)</td>
-<td>❌ No (to extend)</td>
+<td>✅ Yes (stored in Cosmos)</td>
 </tr>
 </tbody>
 </table>
 
-> 📝 **Note**: `op2-CosmosDBTracing.py` currently persists input/output; the `tokens` dict is empty—populate it by reusing the standalone logic or extracting `event.usage` from the final streaming event.
+> 📝 **Note**: `op2-CosmosDBTracing.py` now captures and stores token usage data (`prompt_tokens`, `completion_tokens`, `total_tokens`) in the Cosmos DB turn documents.
 
 ---
 
-## 🛠️ Adding Tokens to Cosmos (Quick Guide)
-
-<details>
-<summary><strong>📝 View implementation steps</strong></summary>
-
-### Step 1: Capture the usage object
-```python
-usage_data = None
-for event in stream:
-    # ... existing delta handling ...
-    if getattr(event, 'usage', None):
-        usage_data = event.usage
-```
-
-### Step 2: Populate before upsert
-```python
-# before upsert_item
-if usage_data:
-    turn_doc['tokens'] = {
-        'prompt_tokens': usage_data.prompt_tokens,
-        'completion_tokens': usage_data.completion_tokens,
-        'total_tokens': usage_data.total_tokens,
-    }
-```
-
-### Step 3: (Optional) Add counters
-```python
-# Use metrics.get_meter as shown in the standalone script
-```
-
-</details>
-
----
-
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 <table>
 <thead>
