@@ -1,154 +1,377 @@
-# Calabrio Chat Completion Telemetry Demo
+# 🚀 Calabrio Chat Completion Telemetry Demo
 
-## Overview
-Current state: the repository now contains four active Python scripts demonstrating telemetry (and, for one script, Cosmos DB persistence). Legacy files referenced in earlier documentation (`tracingexample.py`, `PruebasAutoUsageTest.py`, `op1-NativeTracingTelemetry.py`, `op2-NativeTracingTelemetry.py`, `chainlit_app.py`) have been removed. This README only describes what is present today.
+<div align="center">
 
-Conceptual approaches:
-1. Option 1 (Native instrumentation): automatic SDK spans + token usage via `stream_options={"include_usage": True}` with minimal custom logic.
-2. Option 2 (Cosmos persistence): chat example persisting turns (input/output + minimal trace info) into Cosmos DB; foundation to extend with token details, metrics, etc.
+![Azure OpenAI](https://img.shields.io/badge/Azure%20OpenAI-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-326CE5?style=for-the-badge&logo=opentelemetry&logoColor=white)
+![Cosmos DB](https://img.shields.io/badge/Cosmos%20DB-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white)
+
+*Complete telemetry demonstration for chat completions with Azure OpenAI*
+
+</div>
+
+## 📋 Overview
+
+This repository contains **four active Python scripts** demonstrating different telemetry and persistence approaches for Azure OpenAI-based chat applications. All legacy files have been removed to keep the project clean and focused.
+
+### 🎯 Conceptual Approaches
+
+| 🔧 **Option 1: Native Instrumentation** | 🗃️ **Option 2: Cosmos Persistence** |
+|:-----------------------------------------|:-------------------------------------|
+| Automatic SDK spans + token usage | Chat examples persisting turns in Cosmos DB |
+| `stream_options={"include_usage": True}` | Foundation to extend with token details and metrics |
+| Minimal custom logic | Foundation for quality evaluations |
 
 ---
-## File Map
-| File | Purpose | Category |
-|------|---------|----------|
-| `op1-NativeTracingTelemetrySimpleCase.py` | Standalone single streaming request; adds manual token usage attributes and counters (prompt/completion/total). | Option 1 (standalone advanced) |
-| `op1-NativeTracingTelemetryChat.py` | Minimal multi‑turn Chainlit chat: conversation/turn spans + automatic usage (no manual counters). | Option 1 (chat) |
-| `op1-NativeTracingSemanticKernel.py` | Minimal Semantic Kernel (non‑streaming) single prompt; creates conversation + turn spans; relies on automatic usage capture (no manual counters). | Option 1 (Semantic Kernel) |
-| `op2-CosmosDBTracing.py` | Chainlit chat persisting turns in Cosmos DB (stores input/output + basic trace list). Extendable for tokens. | Option 2 (Cosmos) |
-| `chainlit.md` | Chainlit welcome screen. | UI |
-| `requirements.txt` | Dependencies (Chainlit, OpenAI, Cosmos, OpenTelemetry, etc.). | Infra |
 
-Removed / legacy (not present): `tracingexample.py`, `PruebasAutoUsageTest.py`, `op1-NativeTracingTelemetry.py`, `op2-NativeTracingTelemetry.py`, `chainlit_app.py`.
+## 📁 File Map
+
+<table>
+<thead>
+<tr>
+<th>📄 File</th>
+<th>🎯 Purpose</th>
+<th>🏷️ Category</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>op1-NativeTracingTelemetrySimpleCase.py</code></td>
+<td>📊 <strong>Standalone case</strong>: Single streaming request; adds manual token usage attributes and counters (prompt/completion/total)</td>
+<td>🔧 Option 1 (standalone advanced)</td>
+</tr>
+<tr>
+<td><code>op1-NativeTracingTelemetryChat.py</code></td>
+<td>💬 <strong>Minimal multi-turn chat</strong>: conversation/turn spans + automatic usage (no manual counters)</td>
+<td>🔧 Option 1 (chat)</td>
+</tr>
+<tr>
+<td><code>op1-NativeTracingSemanticKernel.py</code></td>
+<td>🧠 <strong>Minimal Semantic Kernel</strong>: single prompt (non-streaming); creates conversation + turn spans; automatic usage capture</td>
+<td>🔧 Option 1 (Semantic Kernel)</td>
+</tr>
+<tr>
+<td><code>op2-CosmosDBTracing.py</code></td>
+<td>🗃️ <strong>Chat with persistence</strong>: persists turns in Cosmos DB (input/output + basic trace list). Extendable for tokens</td>
+<td>🗃️ Option 2 (Cosmos)</td>
+</tr>
+<tr>
+<td><code>chainlit.md</code></td>
+<td>🏠 Chainlit welcome screen</td>
+<td>🎨 UI</td>
+</tr>
+<tr>
+<td><code>requirements.txt</code></td>
+<td>📦 Dependencies (Chainlit, OpenAI, Cosmos, OpenTelemetry, etc.)</td>
+<td>⚙️ Infrastructure</td>
+</tr>
+</tbody>
+</table>
+
+> ⚠️ **Removed/legacy files** (not present): `tracingexample.py`, `PruebasAutoUsageTest.py`, `op1-NativeTracingTelemetry.py`, `op2-NativeTracingTelemetry.py`, `chainlit_app.py`.
 
 ---
-## Environment Variables (.env)
-There is a template file: `.fakeenv`. Copy it to `.env` and replace placeholder values:
+
+## 🔐 Environment Variables (.env)
+
+> 📋 **Template available**: There is a `.fakeenv` file. Copy it to `.env` and replace placeholder values:
+
 ```bash
 cp .fakeenv .env
 ```
-Never commit the real `.env`.
 
-Azure OpenAI:
-- `AZURE_OPENAI_API_KEY` (or `AZURE_OPENAI_KEY`)
-- `AZURE_OPENAI_ENDPOINT` (https://<resource>.openai.azure.com/)
-- `AZURE_OPENAI_DEPLOYMENT`
-- `AZURE_OPENAI_API_VERSION` (optional override; code sets a default if absent)
+> ⚠️ **IMPORTANT!** Never commit the real `.env` file.
 
-Telemetry / Azure Monitor:
-- `APPINSIGHT_INSTRUMENTATION_KEY` (connection string)
-- `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true` (optional)
-- `OTEL_INSTRUMENTATION_GENAI_CAPTURE_USAGE=true` (optional)
+### 🔵 Azure OpenAI
+```env
+AZURE_OPENAI_API_KEY=your_api_key_here          # or AZURE_OPENAI_KEY
+AZURE_OPENAI_ENDPOINT=https://resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=your_deployment_name
+AZURE_OPENAI_API_VERSION=2024-02-01             # optional override
+```
 
-Cosmos DB (only for `op2-CosmosDBTracing.py`):
-- `COSMOS_URL`
-- `COSMOS_KEY`
-- `COSMOS_DB`
-- `COSMOS_CONTAINER`
+### 📊 Telemetry / Azure Monitor
+```env
+APPINSIGHT_INSTRUMENTATION_KEY=your_connection_string
+OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true  # optional
+OTEL_INSTRUMENTATION_GENAI_CAPTURE_USAGE=true           # optional
+```
+
+### 🗃️ Cosmos DB (only for `op2-CosmosDBTracing.py`)
+```env
+COSMOS_URL=https://account.documents.azure.com:443/
+COSMOS_KEY=your_cosmos_key
+COSMOS_DB=your_database_name
+COSMOS_CONTAINER=your_container_name
+```
 
 ---
-## Running
-### Dev Container (Recommended)
-The repo includes a VS Code Dev Container (`.devcontainer/devcontainer.json`) based on image `mcr.microsoft.com/devcontainers/python:1-3.12-bullseye` with Azure CLI feature.
 
-Prerequisites:
-- Docker Desktop / compatible container runtime running.
-- VS Code with the Dev Containers extension (or GitHub Codespaces).
+## 🚀 How to Run
 
-Steps:
-1. Clone repo.
-2. Open folder in VS Code: it should prompt "Reopen in Container". Accept.
-3. After build, the `postCreateCommand` installs Python deps from `requirements.txt`.
-4. Create `.env` (copy from `.fakeenv`).
-5. Run scripts/Chainlit commands as below.
+### 🐳 Dev Container (Recommended)
 
-### Local (Without Dev Container)
-Prerequisites:
-- Python 3.12 (match container image) recommended.
-- `pip install -r requirements.txt` inside a virtualenv.
-- (Optional) Azure CLI if you plan to interact with Azure resources manually.
+The repository includes a VS Code Dev Container (`.devcontainer/devcontainer.json`) based on image `mcr.microsoft.com/devcontainers/python:1-3.12-bullseye` with Azure CLI feature.
 
-Steps:
-1. `python -m venv .venv && source .venv/bin/activate` (Linux/macOS) or `.venv\\Scripts\\activate` (Windows).
-2. `pip install -r requirements.txt`.
-3. `cp .fakeenv .env` and fill real values.
-4. Run one of the execution modes below.
+<details>
+<summary><strong>📋 Prerequisites</strong></summary>
 
-### 1. Standalone (tokens + counters)
+- ✅ Docker Desktop / compatible container runtime running
+- ✅ VS Code with Dev Containers extension (or GitHub Codespaces)
+
+</details>
+
+#### 🔧 Setup Steps
+
+1. **📥 Clone the repository**
+2. **🖥️ Open folder in VS Code**: it should prompt "Reopen in Container". Accept.
+3. **⏳ After build**: the `postCreateCommand` installs Python dependencies from `requirements.txt`
+4. **🔐 Create `.env`** (copy from `.fakeenv`)
+5. **▶️ Run** the scripts/Chainlit commands as shown below
+
+### 💻 Local (Without Dev Container)
+
+<details>
+<summary><strong>📋 Prerequisites</strong></summary>
+
+- ✅ Python 3.12 (to match container image) recommended
+- ✅ `pip install -r requirements.txt` inside a virtualenv
+- ✅ (Optional) Azure CLI if you plan to interact with Azure resources manually
+
+</details>
+
+#### 🔧 Setup Steps
+
+```bash
+# 1. Create and activate virtual environment
+python -m venv .venv && source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate  # Windows
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Configure environment variables
+cp .fakeenv .env
+# Edit .env with real values
+
+# 4. Run one of the execution modes below
+```
+
+---
+
+## 🎮 Execution Modes
+
+### 1️⃣ Standalone (tokens + counters)
+
 ```bash
 python op1-NativeTracingTelemetrySimpleCase.py
 ```
-Sample Kusto query (Application Insights) to view token attributes:
+
+<details>
+<summary><strong>📊 Sample Kusto query (Application Insights)</strong></summary>
+
 ```kusto
 traces
 | where customDimensions["llm.usage.total_tokens"] != ''
 | order by timestamp desc
 ```
 
-### 2. Minimal chat (native instrumentation)
+</details>
+
+### 2️⃣ Minimal chat (native instrumentation)
+
 ```bash
 chainlit run op1-NativeTracingTelemetryChat.py
 ```
 
-### 3. Chat with Cosmos DB persistence
-Prepare the database/container and environment variables, then:
+### 3️⃣ Chat with Cosmos DB persistence
+
+> ⚠️ **Preparation**: Set up the database/container and environment variables first
+
 ```bash
 chainlit run op2-CosmosDBTracing.py
 ```
 
-### 4. Minimal Semantic Kernel (non‑streaming)
+### 4️⃣ Minimal Semantic Kernel (non-streaming)
+
 ```bash
 python op1-NativeTracingSemanticKernel.py
 ```
-Single prompt answered via Semantic Kernel; emits one conversation + one turn span; relies on OpenAI auto‑instrumentation for token usage (no manual counters, no streaming loop).
+
+> 🧠 **Description**: Single prompt answered via Semantic Kernel; emits one conversation + one turn span; relies on OpenAI auto-instrumentation for token usage (no manual counters, no streaming loop).
 
 ---
-## Key Differences
-| Aspect | Standalone SimpleCase | Chat Minimal | Chat Cosmos |
-|--------|-----------------------|--------------|-------------|
-| Streaming | Yes | Yes | Yes |
-| SDK auto spans | Yes | Yes | Yes |
-| Conversation span | No (single request span) | Yes | (Not implemented yet) |
-| Turn span | No | Yes | No (can be added) |
-| Custom token counters | Yes | No | No (template to extend) |
-| Cosmos persistence | No | No | Yes |
-| Manual token attributes | Yes | No (expects auto) | No (to extend) |
 
-Note: `op2-CosmosDBTracing.py` currently persists input/output; the `tokens` dict is empty—populate it by reusing the standalone logic or extracting `event.usage` from the final streaming event.
+## 🔍 Key Differences
+
+<table>
+<thead>
+<tr>
+<th>🎯 Aspect</th>
+<th>📊 Standalone SimpleCase</th>
+<th>💬 Chat Minimal</th>
+<th>🗃️ Chat Cosmos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Streaming</strong></td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td><strong>SDK auto spans</strong></td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td><strong>Conversation span</strong></td>
+<td>❌ No (single request span)</td>
+<td>✅ Yes</td>
+<td>⚠️ Not implemented yet</td>
+</tr>
+<tr>
+<td><strong>Turn span</strong></td>
+<td>❌ No</td>
+<td>✅ Yes</td>
+<td>❌ No (can be added)</td>
+</tr>
+<tr>
+<td><strong>Custom token counters</strong></td>
+<td>✅ Yes</td>
+<td>❌ No (expects auto)</td>
+<td>❌ No (template to extend)</td>
+</tr>
+<tr>
+<td><strong>Cosmos persistence</strong></td>
+<td>❌ No</td>
+<td>❌ No</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td><strong>Manual token attributes</strong></td>
+<td>✅ Yes</td>
+<td>❌ No (expects auto)</td>
+<td>❌ No (to extend)</td>
+</tr>
+</tbody>
+</table>
+
+> 📝 **Note**: `op2-CosmosDBTracing.py` currently persists input/output; the `tokens` dict is empty—populate it by reusing the standalone logic or extracting `event.usage` from the final streaming event.
 
 ---
-## Adding Tokens to Cosmos (Quick Guide)
-1. Capture the last `event.usage` object during streaming.
-2. Before `upsert_item`, set `turn_doc["tokens"]` with `prompt_tokens`, `completion_tokens`, `total_tokens`.
-3. (Optional) Add counters using `metrics.get_meter` as shown in the standalone script.
+
+## 🛠️ Adding Tokens to Cosmos (Quick Guide)
+
+<details>
+<summary><strong>📝 View implementation steps</strong></summary>
+
+### Step 1: Capture the usage object
+```python
+usage_data = None
+for event in stream:
+    # ... existing delta handling ...
+    if getattr(event, 'usage', None):
+        usage_data = event.usage
+```
+
+### Step 2: Populate before upsert
+```python
+# before upsert_item
+if usage_data:
+    turn_doc['tokens'] = {
+        'prompt_tokens': usage_data.prompt_tokens,
+        'completion_tokens': usage_data.completion_tokens,
+        'total_tokens': usage_data.total_tokens,
+    }
+```
+
+### Step 3: (Optional) Add counters
+```python
+# Use metrics.get_meter as shown in the standalone script
+```
+
+</details>
 
 ---
-## Troubleshooting
-| Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
-| Missing spans | Missing `configure_azure_monitor` or connection string | Verify `APPINSIGHT_INSTRUMENTATION_KEY` |
-| No token usage (chat) | Missing `stream_options.include_usage` or env flag | Add `stream_options={"include_usage": True}` + enable usage flag |
-| Messages not grouped | No reusable conversation span | Create & store a root span in Chainlit session |
-| Cosmos not persisting | Incomplete Cosmos env vars | Verify `COSMOS_*` values |
+
+## 🔧 Troubleshooting
+
+<table>
+<thead>
+<tr>
+<th>🚨 Symptom</th>
+<th>🔍 Likely Cause</th>
+<th>✅ Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>❌ Missing spans</td>
+<td>Missing <code>configure_azure_monitor</code> or connection string</td>
+<td>🔐 Verify <code>APPINSIGHT_INSTRUMENTATION_KEY</code></td>
+</tr>
+<tr>
+<td>📊 No token usage (chat)</td>
+<td>Missing <code>stream_options.include_usage</code> or env flag</td>
+<td>⚙️ Add <code>stream_options={"include_usage": True}</code> + enable usage flag</td>
+</tr>
+<tr>
+<td>📱 Messages not grouped</td>
+<td>No reusable conversation span</td>
+<td>🔄 Create & store a root span in Chainlit session</td>
+</tr>
+<tr>
+<td>🗃️ Cosmos not persisting</td>
+<td>Incomplete Cosmos env vars</td>
+<td>✔️ Verify <code>COSMOS_*</code> values</td>
+</tr>
+</tbody>
+</table>
 
 ---
-## Future Extensions
-- Add root + per-turn spans to `op2-CosmosDBTracing.py` for full correlation.
-- Populate token metrics & attributes in Cosmos turns.
-- Latency histograms per deployment (OTel metrics).
-- Quality / safety evaluation spans (groundedness, toxicity) appended to stored turns.
+
+## 🚀 Future Extensions
+
+- 🔗 **Add root + per-turn spans** to `op2-CosmosDBTracing.py` for full correlation
+- 📊 **Populate token metrics & attributes** in Cosmos turns
+- ⏱️ **Latency histograms** per deployment (OTel metrics)
+- 🎯 **Quality/safety evaluation spans** (groundedness, toxicity) appended to stored turns
 
 ---
-## Security Notes
-- Do not commit real keys; keep them in `.env` (ignored by Git).
-- Ensure compliance review before enabling message content capture (`OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`).
- - If using Codespaces / Dev Container, rotate any ephemeral keys after demos.
+
+## 🔒 Security Notes
+
+<div align="center">
+
+⚠️ **IMPORTANT: Keep your credentials secure** ⚠️
+
+</div>
+
+- 🚫 **Do not commit real keys**; keep them in `.env` (ignored by Git)
+- 🛡️ **Ensure compliance review** before enabling message content capture (`OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT`)
+- 🔄 **If using Codespaces / Dev Container**, rotate any ephemeral keys after demos
 
 ---
-## Glossary
-- Span: Trace unit (conversation, turn, model call).
-- Usage: Token counts returned by Azure OpenAI.
-- Instrumentation: Automatic span generation by SDK + OpenTelemetry.
-- Turn: A user → assistant exchange.
+
+## 📚 Glossary
+
+| 🏷️ **Term** | 📝 **Definition** |
+|:-------------|:------------------|
+| **Span** | Trace unit (conversation, turn, model call) |
+| **Usage** | Token counts returned by Azure OpenAI |
+| **Instrumentation** | Automatic span generation by SDK + OpenTelemetry |
+| **Turn** | A user → assistant exchange |
 
 ---
-End of current project state.
+
+<div align="center">
+
+### 🎉 End of current project state!
+
+*Have questions? Check the documentation or open an issue!*
+
+</div>
